@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Participant } from '../data/types';
 import { getParticipantBiometrics } from '../data/mockData';
 import { HeartRateChart, ActivityChart, SleepChart, StressChart } from '../components/Charts';
-import { ArrowLeft, MapPin, Clock, Heart, Activity, Moon, Zap, AlertTriangle, Shield, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Heart, Activity, Moon, Zap, AlertTriangle, Shield, CheckCircle, PhoneCall, MessageCircle, Mail } from 'lucide-react';
+import EmailTicketModal from '../components/EmailTicketModal';
 
 interface ParticipantDetailProps {
   participant: Participant;
@@ -10,6 +12,18 @@ interface ParticipantDetailProps {
 
 export default function ParticipantDetail({ participant, onBack }: ParticipantDetailProps) {
   const { current } = getParticipantBiometrics(participant);
+  const [showEmail, setShowEmail] = useState(false);
+  const [callStatus, setCallStatus] = useState<'call' | 'whatsapp' | null>(null);
+
+  const handleCall = () => {
+    setCallStatus('call');
+    setTimeout(() => setCallStatus(null), 2000);
+  };
+
+  const handleWhatsApp = () => {
+    setCallStatus('whatsapp');
+    setTimeout(() => setCallStatus(null), 2000);
+  };
 
   const metrics = [
     {
@@ -34,6 +48,50 @@ export default function ParticipantDetail({ participant, onBack }: ParticipantDe
         <ArrowLeft size={18} />
         Back to Dashboard
       </button>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative">
+          <button
+            onClick={handleCall}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-50 text-success hover:bg-emerald-100"
+          >
+            <PhoneCall size={16} />
+            Call
+          </button>
+          {participant.contact?.phone && (
+            <p className="text-xs text-text-secondary mt-1 text-center">{participant.contact.phone}</p>
+          )}
+          {callStatus === 'call' && (
+            <p className="text-xs text-success mt-1 text-center">Initiating call...</p>
+          )}
+        </div>
+
+        <div>
+          <button
+            onClick={handleWhatsApp}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-50 text-success hover:bg-emerald-100"
+          >
+            <MessageCircle size={16} />
+            WhatsApp
+          </button>
+          {callStatus === 'whatsapp' && (
+            <p className="text-xs text-success mt-1 text-center">Initiating chat...</p>
+          )}
+        </div>
+
+        <div>
+          <button
+            onClick={() => setShowEmail(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-50 text-primary hover:bg-blue-100"
+          >
+            <Mail size={16} />
+            Email Update
+          </button>
+          {participant.contact?.email && (
+            <p className="text-xs text-text-secondary mt-1 text-center">{participant.contact.email}</p>
+          )}
+        </div>
+      </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
@@ -172,6 +230,14 @@ export default function ParticipantDetail({ participant, onBack }: ParticipantDe
           </div>
         </div>
       </div>
+
+      {showEmail && (
+        <EmailTicketModal
+          participant={participant}
+          onClose={() => setShowEmail(false)}
+          onSent={() => {}}
+        />
+      )}
     </div>
   );
 }
